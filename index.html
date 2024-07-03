@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Real-time Transcription</title>
+    <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
     <h1>Real-time Transcription</h1>
@@ -12,8 +13,7 @@
     <div id="transcript"></div>
 
     <script>
-      const ws = new WebSocket("ws://" + window.location.host);
-      ws.binaryType = "arraybuffer";
+      const socket = io();
       const startButton = document.getElementById("startButton");
       const stopButton = document.getElementById("stopButton");
       const transcriptDiv = document.getElementById("transcript");
@@ -27,19 +27,25 @@
       startButton.addEventListener("click", startRecording);
       stopButton.addEventListener("click", stopRecording);
 
-      function startRecording() {
-        ws.onmessage = (event) => {
-          console.log(event);
-          const arrayBuffer = event.data;
-          audioQueue.push(arrayBuffer);
-          if (!isPlaying) {
-            playNextInQueue();
-          }
-        };
+      socket.on("stream_interrupted", () => {
+        console.log("stream_interrupted");
+        if (sourceNode) {
+          console.log("sourceNode.stop()");
+          sourceNode.stop();
+        }
+      });
 
-        // if (ws.readyState === WebSocket.OPEN) {
-        //   ws.send("Explain me what is nodejs");
-        // }
+      socket.on("audio", (arrayBuffer) => {
+        console.log("Received audio data");
+        audioQueue.push(arrayBuffer);
+        if (!isPlaying) {
+          playNextInQueue();
+        }
+      });
+
+      function startRecording() {
+        // Uncomment and modify if needed
+        // socket.emit('message', "Explain me what is nodejs");
 
         navigator.mediaDevices
           .getUserMedia({ audio: true })
@@ -47,9 +53,7 @@
             mediaRecorder = new MediaRecorder(stream);
             mediaRecorder.ondataavailable = (event) => {
               audioChunks.push(event.data);
-              if (ws.readyState === WebSocket.OPEN) {
-                ws.send(event.data);
-              }
+              socket.emit("audioMessage", event.data);
             };
             mediaRecorder.start(250);
             startButton.disabled = true;
@@ -64,7 +68,7 @@
         mediaRecorder.stop();
         startButton.disabled = false;
         stopButton.disabled = true;
-        ws.close();
+        socket.disconnect();
       }
 
       async function playNextInQueue() {
@@ -83,7 +87,7 @@
 
         try {
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-          const sourceNode = audioContext.createBufferSource();
+          sourceNode = audioContext.createBufferSource();
           sourceNode.buffer = audioBuffer;
           sourceNode.connect(audioContext.destination);
           sourceNode.onended = playNextInQueue; // Play next when current audio ends
