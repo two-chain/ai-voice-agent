@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-time Transcription</title>
+  </head>
+  <body>
+    <h1>Real-time Transcription</h1>
+    <button id="startButton">Start Recording</button>
+    <button id="stopButton" disabled>Stop Recording</button>
+    <div id="transcript"></div>
+
+    <script>
+      const ws = new WebSocket("ws://" + window.location.host);
+      ws.binaryType = "arraybuffer";
+      const startButton = document.getElementById("startButton");
+      const stopButton = document.getElementById("stopButton");
+      const transcriptDiv = document.getElementById("transcript");
+      let mediaRecorder;
+      let audioChunks = [];
+      let audioContext;
+      let sourceNode;
+      let audioQueue = [];
+      let isPlaying = false;
+
+      startButton.addEventListener("click", startRecording);
+      stopButton.addEventListener("click", stopRecording);
+
+      function startRecording() {
+        ws.onmessage = (event) => {
+          console.log(event);
+          const arrayBuffer = event.data;
+          audioQueue.push(arrayBuffer);
+          if (!isPlaying) {
+            playNextInQueue();
+          }
+        };
+
+        // if (ws.readyState === WebSocket.OPEN) {
+        //   ws.send("Explain me what is nodejs");
+        // }
+
+        navigator.mediaDevices
+          .getUserMedia({ audio: true })
+          .then((stream) => {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (event) => {
+              audioChunks.push(event.data);
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(event.data);
+              }
+            };
+            mediaRecorder.start(250);
+            startButton.disabled = true;
+            stopButton.disabled = false;
+          })
+          .catch((error) =>
+            console.error("Error accessing microphone:", error)
+          );
+      }
+
+      function stopRecording() {
+        mediaRecorder.stop();
+        startButton.disabled = false;
+        stopButton.disabled = true;
+        ws.close();
+      }
+
+      async function playNextInQueue() {
+        if (audioQueue.length === 0) {
+          isPlaying = false;
+          return;
+        }
+
+        isPlaying = true;
+        const arrayBuffer = audioQueue.shift();
+
+        if (!audioContext) {
+          audioContext = new (window.AudioContext ||
+            window.webkitAudioContext)();
+        }
+
+        try {
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+          const sourceNode = audioContext.createBufferSource();
+          sourceNode.buffer = audioBuffer;
+          sourceNode.connect(audioContext.destination);
+          sourceNode.onended = playNextInQueue; // Play next when current audio ends
+          sourceNode.start();
+        } catch (error) {
+          console.error("Error decoding audio data:", error);
+          playNextInQueue(); // Move to next audio in case of error
+        }
+      }
+    </script>
+  </body>
+</html>
