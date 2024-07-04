@@ -22,6 +22,9 @@ let ws;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server, path: "/voice" });
 
+const app_callback_url = `https://${process.env.NGROK_HOST}`;
+const websocket_url = `wss://${process.env.NGROK_HOST}`;
+
 const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
 
 let is_finals = [];
@@ -195,12 +198,6 @@ app.post("/call", async (req, res) => {
         .status(404)
         .json({ detail: "Recipient phone number not provided" });
     }
-
-    // const [app_callback_url, websocket_url] = await populate_ngrok_tunnels();
-    const app_callback_url =
-      "https://27c2-2601-5cc-c581-10e0-7d7e-8aae-d76c-ca51.ngrok-free.app";
-    const websocket_url =
-      "wss://27c2-2601-5cc-c581-10e0-7d7e-8aae-d76c-ca51.ngrok-free.app";
 
     console.log(`app_callback_url: ${app_callback_url}`);
     console.log(`websocket_url: ${websocket_url}`);

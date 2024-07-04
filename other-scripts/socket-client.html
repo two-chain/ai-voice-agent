@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket.IO Client Example</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+  </head>
+  <body>
+    <h1>Socket.IO Client Example</h1>
+    <div id="status">Connecting...</div>
+    <div id="messages"></div>
+    <script>
+      // Replace 'your-ngrok-url' with the actual ngrok URL
+      const socket = io(
+        "wss://27c2-2601-5cc-c581-10e0-7d7e-8aae-d76c-ca51.ngrok-free.app"
+      );
+
+      // Update status when connected
+      socket.on("connect", () => {
+        document.getElementById("status").innerText = "Connected to the server";
+        console.log("Connected to the server");
+      });
+
+      // Update status when disconnected
+      socket.on("disconnect", () => {
+        document.getElementById("status").innerText =
+          "Disconnected from the server";
+        console.log("Disconnected from the server");
+      });
+
+      // Handle custom 'message' event
+      socket.on("message", (data) => {
+        const messagesDiv = document.getElementById("messages");
+        const messageElement = document.createElement("div");
+        messageElement.innerText = `Message from server: ${data}`;
+        messagesDiv.appendChild(messageElement);
+        console.log("Message from server:", data);
+      });
+
+      // Emit a custom event to the server
+      socket.emit("myEvent", { myData: "Hello Server" });
+    </script>
+  </body>
+</html>

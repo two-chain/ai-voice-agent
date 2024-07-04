@@ -4,6 +4,7 @@ const twilio = require("twilio");
 const VoiceResponse = twilio.twiml.VoiceResponse;
 const { chatCompletionStream } = require("./openai");
 const { synthesizeAudio } = require("./deepgram-synthesizer");
+const { createClient, LiveTranscriptionEvents } = require("@deepgram/sdk");
 require("dotenv").config();
 
 const app = express();
@@ -17,7 +18,7 @@ const twilioClient = twilio(accountSid, authToken);
 app.use(express.urlencoded({ extended: false }));
 
 app.post("/voice", async (req, res) => {
-  //   const twiml = new VoiceResponse();
+  const twiml = new VoiceResponse();
   const call = await twilioClient.calls.create({
     to: call_details.recipient_phone_number,
     from: twilio_phone_number,
@@ -66,6 +67,82 @@ app.post("/handle-transcription", async (req, res) => {
   }
 
   res.sendStatus(200);
+});
+
+let is_finals = [];
+const connection = deepgram.listen.live({
+  model: "nova-2",
+  language: "en-US",
+  filler_words: true,
+  smart_format: true,
+  interim_results: true,
+  utterance_end_ms: 1000,
+  vad_events: true,
+  endpointing: 300,
+  diarize: true,
+});
+
+connection.on(LiveTranscriptionEvents.Open, () => {
+  console.log("Deepgram connection opened");
+
+  async function startChat(message) {
+    try {
+      for await (const sentence of chatCompletionStream(message.toString())) {
+        console.log("sentence", sentence);
+        const audioData = await synthesizeAudio(sentence);
+        socket.emit("audio", audioData);
+      }
+    } catch (error) {
+      console.error("Error in Socket.IO message handling:", error);
+    }
+  }
+  connection.on(LiveTranscriptionEvents.Close, () => {
+    console.log("Connection closed.");
+  });
+
+  connection.on(LiveTranscriptionEvents.Metadata, (data) => {
+    console.log(`Deepgram Metadata: $${data}`);
+  });
+
+  connection.on(LiveTranscriptionEvents.Transcript, (data) => {
+    const sentence = data.channel.alternatives[0].transcript;
+
+    if (sentence.length == 0) {
+      return;
+    }
+    if (data.is_final) {
+      is_finals.push(sentence);
+
+      if (data.speech_final) {
+        const utterance = is_finals.join(" ");
+        if (utterance) {
+          //   isInterrupted = true;
+          //   socket.emit("stream_interrupted");
+          startChat(utterance); //TTT
+        }
+        console.log(`Speech Final: $${utterance}`);
+        is_finals = [];
+      } else {
+        console.log(`Is Final: $${sentence}`);
+      }
+    } else {
+      console.log(`Interim Results: $${sentence}`);
+    }
+  });
+
+  connection.on(LiveTranscriptionEvents.UtteranceEnd, (data) => {
+    const utterance = is_finals.join(" ");
+    console.log(`Deepgram UtteranceEnd: $${utterance}`);
+    is_finals = [];
+  });
+
+  connection.on(LiveTranscriptionEvents.SpeechStarted, (data) => {
+    console.log("Deepgram SpeechStarted");
+  });
+
+  connection.on(LiveTranscriptionEvents.Error, (err) => {
+    console.error(err);
+  });
 });
 
 async function makeCallWithAudio(to, audioData) {

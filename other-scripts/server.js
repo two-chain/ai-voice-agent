@@ -17,8 +17,9 @@ dotenv.config();
 
 // Initialize the OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Make sure to set your API key as an environment variable
+  apiKey: process.env.OPENAI_API_KEY,
 });
+
 let isInterrupted = false;
 const systemPrompt = `You are a friendly and helpful AI assistant. Your goal is to provide accurate, concise, and engaging responses to any questions or conversations. You should always be polite, positive, and approachable. Here are some guidelines to follow:
 
@@ -31,11 +32,6 @@ Engage in Conversation: Ask follow-up questions to keep the conversation flowing
 
 const sentenceEnd = /[.!?]\s/;
 
-/**
- * Call OpenAI chat completion API and return a stream of responses
- * @param {string} message - The input message to send to the API
- * @returns {AsyncGenerator} - A generator that yields chunks of the response
- */
 async function* chatCompletionStream(message) {
   try {
     const stream = await openai.chat.completions.create({
@@ -49,7 +45,7 @@ async function* chatCompletionStream(message) {
 
     let buffer = "";
     for await (const chunk of stream) {
-      if (isInterrupted) break; // Check for interruption
+      if (isInterrupted) break;
 
       if (chunk.choices[0]?.delta?.content) {
         buffer += chunk.choices[0].delta.content;
@@ -57,7 +53,7 @@ async function* chatCompletionStream(message) {
 
         if (sentences.length > 1) {
           for (let i = 0; i < sentences.length - 1; i++) {
-            yield sentences[i].trim() + "."; // Add the period back
+            yield sentences[i].trim() + ".";
           }
           buffer = sentences[sentences.length - 1];
         }

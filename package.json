@@ -4,17 +4,20 @@
   "description": "",
   "main": "deepgram.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node other-scripts/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "node-record-lpcm16": "^1.0.1",
     "openai": "^4.52.2",
     "socket.io": "^4.7.5",
-    "twilio": "^5.2.2"
+    "twilio": "^5.2.2",
+    "wavefile": "^11.0.0"
   }
 }
