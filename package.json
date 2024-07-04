@@ -1,7 +1,7 @@
 {
-  "name": "express-typescript-boilerplate",
-  "version": "1.0.14",
-  "description": "An Express boilerplate backend",
+  "name": "ai-voice-agent",
+  "version": "0.0.1",
+  "description": "AI Voice Agent: A Node.js-based intelligent voice assistant that uses speech recognition, natural language processing, and text-to-speech technologies to understand and respond to voice commands.",
   "main": "index.ts",
   "private": true,
   "scripts": {
@@ -71,7 +71,7 @@
     "**/*": "npm run format",
     "**/*.{js,ts}": "npm run lint:fix"
   },
-  "author": "Edwin Hernandez",
-  "repository": "edwinhern/express-typescript-2024",
+  "author": "Navjot Dhanawat",
+  "repository": "navjotdhanawat/ai-voice-agent",
   "license": "ISC"
 }
