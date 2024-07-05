@@ -1,4 +1,5 @@
-import { logger } from "@/server";
+import { EventEmitter } from "events";
+
 import {
   createClient,
   LiveTranscriptionEvents,
@@ -7,9 +8,9 @@ import {
 } from "@deepgram/sdk";
 import WebSocket from "ws";
 import { Readable } from "stream";
-
+import { logger } from "@/server";
 // TODO: use logger
-class DeepgramTranscription {
+class DeepgramTranscription extends EventEmitter {
   private deepgram: DeepgramClient;
   private ws: WebSocket;
   private isFinals: string[] = [];
@@ -18,6 +19,7 @@ class DeepgramTranscription {
   private outputStream: Readable;
 
   constructor(websocket: WebSocket) {
+    super(); // Call the EventEmitter constructor
     this.deepgram = createClient(process.env.DEEPGRAM_API_KEY);
     this.ws = websocket;
     this.outputStream = new Readable({
@@ -33,9 +35,9 @@ class DeepgramTranscription {
       utterance_end_ms: 1000,
       vad_events: true,
       endpointing: 300,
-      diarize: true,
-      encoding: "mulaw",
-      sample_rate: 8000,
+      // diarize: true,
+      // encoding: "opus", // mulaw in case of twillio
+      // sample_rate: 8000,
     });
 
     this.setupEventListeners();
@@ -104,8 +106,10 @@ class DeepgramTranscription {
           //   this.startChat(utterance);
           //TODO: call llm
           // callback here
-          logger.debug(utterance);
-          this.outputStream.push(utterance);
+          // logger.debug(utterance);
+          // this.outputStream.push(utterance);
+          // this.outputStream.push(null);
+          this.emit("transcription", utterance);
         }
         console.log(`Speech Final: $${utterance}`);
         this.isFinals = [];
@@ -123,7 +127,7 @@ class DeepgramTranscription {
 
   public close(): void {
     this.dgConnection.finish();
-    this.outputStream.push(null); // Signal the end of the stream
+    this.emit("close");
   }
 
   private onUtteranceEnd(data: any): void {

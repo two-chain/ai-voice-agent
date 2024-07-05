@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Real-time Transcription</title>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   </head>
   <body>
     <h1>Real-time Transcription</h1>
@@ -14,7 +13,6 @@
     <div id="transcript"></div>
 
     <script>
-      const socket = io();
       const startButton = document.getElementById("startButton");
       const stopButton = document.getElementById("stopButton");
       const interruptButton = document.getElementById("interruptButton");
@@ -25,24 +23,45 @@
       let sourceNode;
       let audioQueue = [];
       let isPlaying = false;
+      let socket;
+
+      // Initialize WebSocket connection
+      function initWebSocket() {
+        socket = new WebSocket("ws://localhost:8080/voice"); // Replace with your server URL
+
+        socket.onopen = () => {
+          console.log("WebSocket connection established");
+        };
+
+        socket.onmessage = (event) => {
+          if (event.data instanceof Blob) {
+            event.data.arrayBuffer().then((arrayBuffer) => {
+              console.log("Received audio data");
+              audioQueue.push(arrayBuffer);
+              if (!isPlaying) {
+                playNextInQueue();
+              }
+              interruptButton.disabled = false;
+            });
+          } else {
+            const message = JSON.parse(event.data);
+            if (message.type === "stream_interrupted") {
+              console.log("stream_interrupted");
+              stopCurrentAudio();
+            }
+          }
+        };
+
+        socket.onclose = () => {
+          console.log("WebSocket connection closed");
+        };
+      }
+
+      initWebSocket();
 
       startButton.addEventListener("click", startRecording);
       stopButton.addEventListener("click", stopRecording);
       interruptButton.addEventListener("click", stopCurrentAudio);
-
-      socket.on("stream_interrupted", () => {
-        console.log("stream_interrupted");
-        stopCurrentAudio();
-      });
-
-      socket.on("audio", (arrayBuffer) => {
-        console.log("Received audio data");
-        audioQueue.push(arrayBuffer);
-        if (!isPlaying) {
-          playNextInQueue();
-        }
-        interruptButton.disabled = false;
-      });
 
       function startRecording() {
         stopCurrentAudio();
@@ -52,8 +71,25 @@
           .then((stream) => {
             mediaRecorder = new MediaRecorder(stream);
             mediaRecorder.ondataavailable = (event) => {
-              audioChunks.push(event.data);
-              socket.emit("audioMessage", event.data);
+              // Create a FileReader to read the Blob data
+              const reader = new FileReader();
+
+              reader.onloadend = () => {
+                // The result attribute contains the data as a base64 encoded string
+                const base64data = reader.result.split(",")[1];
+
+                const payload = JSON.stringify({
+                  event: "media",
+                  streamSid: "streamSid",
+                  media: {
+                    payload: base64data,
+                  },
+                });
+                socket.send(payload);
+              };
+
+              // Read the Blob data as a data URL (which is base64 encoded)
+              reader.readAsDataURL(event.data);
             };
             mediaRecorder.start(250);
             startButton.disabled = true;
