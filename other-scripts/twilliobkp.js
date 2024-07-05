@@ -161,6 +161,25 @@ async function populate_ngrok_tunnels() {
 
 app.use(express.json());
 
+// New route to create an agent
+app.post("/create_agent", (req, res) => {
+  try {
+    const agent_id = uuidv4();
+    const agent_info = {
+      id: agent_id,
+      created_at: new Date(),
+      // Add any other agent information you want to store
+    };
+
+    agents.set(agent_id, agent_info);
+
+    res.status(200).json({ agent_id: agent_id });
+  } catch (error) {
+    console.error("Exception occurred in create_agent:", error);
+    res.status(500).json({ detail: "Internal Server Error" });
+  }
+});
+
 app.post("/call", async (req, res) => {
   try {
     const call_details = req.body;
@@ -223,6 +242,10 @@ app.post("/twilio_callback", async (req, res) => {
     console.error("Exception occurred in twilio_callback:", error);
     res.status(500).json({ detail: "Internal Server Error" });
   }
+});
+
+app.get("/", (req, res) => {
+  res.send("true");
 });
 
 const outputFile = fs.createWriteStream("output.ulaw");

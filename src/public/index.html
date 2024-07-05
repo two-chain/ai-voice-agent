@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Real-time Transcription</title>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   </head>
   <body>
     <h1>Real-time Transcription</h1>
@@ -14,9 +14,7 @@
     <div id="transcript"></div>
 
     <script>
-      const socket = io(
-        "wss://1dd1-2601-5cc-c581-10e0-7d7e-8aae-d76c-ca51.ngrok-free.app/voice"
-      );
+      const socket = io();
       const startButton = document.getElementById("startButton");
       const stopButton = document.getElementById("stopButton");
       const interruptButton = document.getElementById("interruptButton");
