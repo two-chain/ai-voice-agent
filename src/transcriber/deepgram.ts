@@ -6,22 +6,19 @@ import {
   DeepgramClient,
   ListenLiveClient,
 } from "@deepgram/sdk";
-import WebSocket from "ws";
 import { Readable } from "stream";
 import { logger } from "@/server";
 // TODO: use logger
 class DeepgramTranscription extends EventEmitter {
   private deepgram: DeepgramClient;
-  private ws: WebSocket;
   private isFinals: string[] = [];
   private streamSid: string | null = null;
   public dgConnection: ListenLiveClient;
   private outputStream: Readable;
 
-  constructor(websocket: WebSocket) {
+  constructor() {
     super(); // Call the EventEmitter constructor
     this.deepgram = createClient(process.env.DEEPGRAM_API_KEY);
-    this.ws = websocket;
     this.outputStream = new Readable({
       read() {}, // This is intentionally empty as we'll push data manually
     });
@@ -114,10 +111,10 @@ class DeepgramTranscription extends EventEmitter {
         console.log(`Speech Final: $${utterance}`);
         this.isFinals = [];
       } else {
-        console.log(`Is Final: $${sentence}`);
+        // console.log(`Is Final: $${sentence}`);
       }
     } else {
-      console.log(`Interim Results: $${sentence}`);
+      // console.log(`Interim Results: $${sentence}`);
     }
   }
 

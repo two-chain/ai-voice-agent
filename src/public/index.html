@@ -28,21 +28,21 @@
       // Initialize WebSocket connection
       function initWebSocket() {
         socket = new WebSocket("ws://localhost:8080/voice"); // Replace with your server URL
-
+        socket.binaryType = "arraybuffer";
         socket.onopen = () => {
           console.log("WebSocket connection established");
         };
 
         socket.onmessage = (event) => {
-          if (event.data instanceof Blob) {
-            event.data.arrayBuffer().then((arrayBuffer) => {
-              console.log("Received audio data");
-              audioQueue.push(arrayBuffer);
-              if (!isPlaying) {
-                playNextInQueue();
-              }
-              interruptButton.disabled = false;
-            });
+          if (event.data instanceof ArrayBuffer) {
+            // event.data.arrayBuffer().then((arrayBuffer) => {
+            console.log("Received audio data");
+            audioQueue.push(event.data);
+            if (!isPlaying) {
+              playNextInQueue();
+            }
+            interruptButton.disabled = false;
+            // });
           } else {
             const message = JSON.parse(event.data);
             if (message.type === "stream_interrupted") {
