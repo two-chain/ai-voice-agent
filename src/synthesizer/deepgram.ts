@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import { createClient } from "@deepgram/sdk";
 import { logger } from "../server"; // FIXME: path
+import Shared from "@/common/utils/Shared";
 
 class AudioGenerator extends EventEmitter {
   private deepgram;
@@ -12,20 +13,17 @@ class AudioGenerator extends EventEmitter {
 
   public async generateAudio(inputText: string): Promise<string | void> {
     try {
-      // STEP 1: Make a request and configure the request with options (such as model choice, audio configuration, etc.)
       const response = await this.deepgram.speak.request(
         { text: inputText },
         {
-          model: "aura-asteria-en",
+          model: "aura-arcas-en",
           encoding: "opus",
         }
       );
 
-      // STEP 2: Get the audio stream and headers from the response
       const stream = await response.getStream();
 
       if (stream) {
-        // STEP 3: Convert the stream to an audio buffer
         const buffer: Buffer = await this.getAudioBuffer(stream);
         // this.emit("audio", buffer.toString("base64")); // FIXME: only for twillio
         this.emit("audio", buffer);
@@ -45,6 +43,7 @@ class AudioGenerator extends EventEmitter {
     const chunks: Uint8Array[] = [];
 
     while (true) {
+      if (Shared.interrupt) break;
       const { done, value } = await reader.read();
       if (done) break;
 

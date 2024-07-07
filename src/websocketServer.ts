@@ -5,6 +5,7 @@ import { logger } from "@/server";
 import DeepgramTranscription from "@/transcriber/deepgram";
 import AudioGenerator from "@/synthesizer/deepgram";
 import ChatCompletion from "@/llm/openai";
+import Shared from "./common/utils/Shared";
 
 const setupWebSocket = (server: Server): WebSocketServer => {
   const wss = new WebSocketServer({ server, path: "/voice" });
@@ -16,15 +17,17 @@ const setupWebSocket = (server: Server): WebSocketServer => {
     const chat = new ChatCompletion();
     const synthsizer = new AudioGenerator();
 
-    transcriber.on("transcription", async (transcription) => {
+    transcriber.on("transcription-chunk", async (transcription) => {
       console.log("On:transcription");
-
+      // interrupt event
+      Shared.interrupt = true;
+      ws.send(JSON.stringify({ type: "stream_interrupted" }));
       await chat.startChat(transcription);
     });
 
-    chat.on("sentence", (data) => {
-      console.log("On: sentence--------------------------", data);
-      synthsizer.generateAudio(data);
+    chat.on("sentence", (sentence) => {
+      console.log("On: sentence--------------------------", sentence);
+      synthsizer.generateAudio(sentence);
     });
 
     synthsizer.on("audio", (buffer) => {

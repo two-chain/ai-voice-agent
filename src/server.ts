@@ -21,6 +21,8 @@ const app: Express = express();
 // Set the application to trust the reverse proxy
 app.set("trust proxy", true);
 
+app.use(require("express-status-monitor")());
+
 // Middlewares
 app.use(express.json());
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));

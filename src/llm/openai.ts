@@ -1,10 +1,12 @@
 import OpenAI from "openai";
 import { EventEmitter } from "events";
+import Shared from "@/common/utils/Shared";
 
 const sentenceEnd = /[.!?]\s/;
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const systemPrompt = "you are bot";
+const systemPrompt =
+  "You are an helpful AI assistant that's having a conversation with customer on a phone call, your name is Navjot. dont include '.' unless complete sentence";
 
 async function* chatCompletionStream(
   message: string
@@ -20,11 +22,9 @@ async function* chatCompletionStream(
       stream: true,
     });
 
-    // console.log("Stream object received:", stream);
-
     let buffer = "";
     for await (const chunk of stream) {
-      // console.log("Received chunk:", chunk);
+      if (Shared.interrupt) break;
       if (chunk.choices[0]?.delta?.content) {
         buffer += chunk.choices[0].delta.content;
         const sentences = buffer.split(sentenceEnd);
@@ -38,7 +38,7 @@ async function* chatCompletionStream(
       }
     }
 
-    if (buffer) {
+    if (buffer && !Shared.interrupt) {
       yield buffer.trim();
     }
   } catch (error) {
@@ -54,7 +54,9 @@ class ChatCompletion extends EventEmitter {
 
   async startChat(message: string): Promise<void> {
     try {
+      Shared.interrupt = false;
       for await (const sentence of chatCompletionStream(message)) {
+        if (Shared.interrupt) break;
         console.log("sentence", sentence);
         this.emit("sentence", sentence);
       }

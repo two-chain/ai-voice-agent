@@ -14,14 +14,10 @@ class DeepgramTranscription extends EventEmitter {
   private isFinals: string[] = [];
   private streamSid: string | null = null;
   public dgConnection: ListenLiveClient;
-  private outputStream: Readable;
 
   constructor() {
     super(); // Call the EventEmitter constructor
     this.deepgram = createClient(process.env.DEEPGRAM_API_KEY);
-    this.outputStream = new Readable({
-      read() {}, // This is intentionally empty as we'll push data manually
-    });
 
     this.dgConnection = this.deepgram.listen.live({
       model: "nova-2",
@@ -100,13 +96,7 @@ class DeepgramTranscription extends EventEmitter {
       if (data.speech_final) {
         const utterance = this.isFinals.join(" ");
         if (utterance) {
-          //   this.startChat(utterance);
-          //TODO: call llm
-          // callback here
-          // logger.debug(utterance);
-          // this.outputStream.push(utterance);
-          // this.outputStream.push(null);
-          this.emit("transcription", utterance);
+          this.emit("transcription-chunk", utterance);
         }
         console.log(`Speech Final: $${utterance}`);
         this.isFinals = [];
@@ -116,10 +106,6 @@ class DeepgramTranscription extends EventEmitter {
     } else {
       // console.log(`Interim Results: $${sentence}`);
     }
-  }
-
-  public getOutputStream(): Readable {
-    return this.outputStream;
   }
 
   public close(): void {
