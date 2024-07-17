@@ -6,3 +6,10 @@
 6. feed sentence to chat gpt
 7. use synthesizer to convert into audio base64
 8. send audio payload back to twillio with ws
+
+LLM flow:
+
+1. create assistant
+2. create thread (kind of session)
+3. Add message
+4. Run thread
