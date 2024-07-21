@@ -1,104 +1,61 @@
-# 🚀 Express TypeScript Boilerplate 2024
+# AI-Powered Call Assistant
 
-[![Build Express Application](https://github.com/edwinhern/express-typescript-2024/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/edwinhern/express-typescript-2024/actions/workflows/build.yml)
-[![CodeQL](https://github.com/edwinhern/express-typescript-2024/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/edwinhern/express-typescript-2024/actions/workflows/codeql.yml)
-[![Docker Image CI](https://github.com/edwinhern/express-typescript-2024/actions/workflows/docker-image.yml/badge.svg?branch=master)](https://github.com/edwinhern/express-typescript-2024/actions/workflows/docker-image.yml)
-[![Release](https://github.com/edwinhern/express-typescript-2024/actions/workflows/release.yml/badge.svg?branch=master)](https://github.com/edwinhern/express-typescript-2024/actions/workflows/release.yml)
+This project implements an AI-powered call assistant using Node.js and React.js. It leverages OpenAI's GPT model, Twilio for call handling, Deepgram for speech-to-text and text-to-speech operations, and WebSocket for real-time communication.
 
-## 🌟 Introduction
+## Table of Contents
 
-Welcome to the Express TypeScript Boilerplate 2024 – a streamlined, efficient, and scalable foundation for building powerful backend services. This boilerplate merges modern tools and practices in Express.js and TypeScript, enhancing productivity, code quality, and performance.
+- [Overview](#overview)
+- [Technologies Used](#technologies-used)
+- [System Architecture](#system-architecture)
+- [Setup and Installation](#setup-and-installation)
+- [Usage](#usage)
+- [API Endpoints](#api-endpoints)
+- [Contributing](#contributing)
+- [License](#license)
 
-## 💡 Motivation and Intentions
+## Overview
 
-Developed to streamline backend development, this boilerplate is your solution for:
+This AI-powered call assistant can handle incoming calls, transcribe speech to text, process the text using OpenAI's GPT model, generate responses, convert those responses to speech, and send the audio back to the caller in real-time.
 
-- ✨ Reducing setup time for new projects.
-- 📊 Ensuring code consistency and quality.
-- ⚡ Facilitating rapid development with cutting-edge tools.
-- 🛡️ Encouraging best practices in security, testing, and performance.
+## Technologies Used
 
-## 🚀 Features
+- Node.js
+- React.js
+- OpenAI GPT
+- Twilio
+- Deepgram (for transcription and audio synthesis)
+- WebSocket
 
-- 📁 Modular Structure: Organized by feature for easy navigation and scalability.
-- 💨 Faster Execution with tsx: Rapid TypeScript execution with esbuild, complemented by tsc for type checking.
-- 🌐 Stable Node Environment: Latest LTS Node version in .nvmrc.
-- 🔧 Simplified Environment Variables with Envalid: Centralized and easy-to-manage configuration.
-- 🔗 Path Aliases: Cleaner code with shortcut imports.
-- 🔄 Dependabot Integration: Automatic updates for secure and up-to-date dependencies.
-- 🔒 Security: Helmet for HTTP header security and CORS setup.
-- 📊 Logging: Efficient logging with pino-http.
-- 🧪 Comprehensive Testing: Robust setup with Vitest and Supertest.
-- 🔑 Code Quality Assurance: Husky and lint-staged for consistent quality.
-- ✅ Unified Code Style: ESLint and Prettier for a consistent coding standard.
-- 📃 API Response Standardization: ServiceResponse class for consistent API responses.
-- 🐳 Docker Support: Ready for containerization and deployment.
-- 📝 Input Validation with Zod: Strongly typed request validation using Zod.
-- 🧩 API Spec Generation: Automated OpenAPI specification generation from Zod schemas to ensure up-to-date and accurate API documentation.
+## System Architecture
 
-## 🛠️ Getting Started
+The system follows this high-level flow:
 
-### Step 1: 🚀 Initial Setup
+1. Create a new agent using the `/agent` endpoint
+2. Initiate a Twilio call using the `/call` endpoint
+3. Receive webhook calls from Twilio on the `/callback` endpoint
+4. Connect Twilio with WebSocket server (websocketserver.ts)
+5. Receive Twilio audio and transcribe using Deepgram (transcribe/deepgram.ts)
+6. Feed the transcribed sentence to ChatGPT
+7. Use Deepgram synthesizer to convert ChatGPT's response into audio (base64 format)
+8. Send audio payload back to Twilio via WebSocket
 
-- Clone the repository: `git clone https://github.com/edwinhern/express-typescript-2024.git`
-- Navigate: `cd express-typescript-2024`
-- Install dependencies: `npm ci`
+### LLM (OpenAI) Flow:
 
-### Step 2: ⚙️ Environment Configuration
+1. Create an assistant
+2. Create a thread (kind of session)
+3. Add a message to the thread
+4. Run the thread
 
-- Create `.env`: Copy `.env.template` to `.env`
-- Update `.env`: Fill in necessary environment variables
+## Setup and Installation
 
-### Step 3: 🏃‍♂️ Running the Project
+## Usage
 
-- Development Mode: `npm run dev`
-- Building: `npm run build`
-- Production Mode: Set `.env` to `NODE_ENV="production"` then `npm run build && npm run start`
+## API Endpoints
 
-## 📁 Project Structure
+- `/agent`: Creates a new agent
+- `/call`: Initiates a Twilio call
+- `/callback`: Receives webhook calls from Twilio
 
-```
-.
-├── api
-│   ├── healthCheck
-│   │   ├── __tests__
-│   │   │   └── healthCheckRouter.test.ts
-│   │   └── healthCheckRouter.ts
-│   └── user
-│       ├── __tests__
-│       │   ├── userRouter.test.ts
-│       │   └── userService.test.ts
-│       ├── userModel.ts
-│       ├── userRepository.ts
-│       ├── userRouter.ts
-│       └── userService.ts
-├── api-docs
-│   ├── __tests__
-│   │   └── openAPIRouter.test.ts
-│   ├── openAPIDocumentGenerator.ts
-│   ├── openAPIResponseBuilders.ts
-│   └── openAPIRouter.ts
-├── common
-│   ├── __tests__
-│   │   ├── errorHandler.test.ts
-│   │   └── requestLogger.test.ts
-│   ├── middleware
-│   │   ├── errorHandler.ts
-│   │   ├── rateLimiter.ts
-│   │   └── requestLogger.ts
-│   ├── models
-│   │   └── serviceResponse.ts
-│   └── utils
-│       ├── commonValidation.ts
-│       ├── envConfig.ts
-│       └── httpHandlers.ts
-├── index.ts
-└── server.ts
+## Contributing
 
-```
-
-## 🤝 Feedback and Contributions
-
-We'd love to hear your feedback and suggestions for further improvements. Feel free to contribute and join us in making backend development cleaner and faster!
-
-🎉 Happy coding!
+## License

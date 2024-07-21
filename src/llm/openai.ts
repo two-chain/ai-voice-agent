@@ -47,7 +47,7 @@ class ChatCompletion extends EventEmitter {
       this.addMessageToHistory("user", message);
 
       const stream = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: this.conversationHistory,
         stream: true,
       });
