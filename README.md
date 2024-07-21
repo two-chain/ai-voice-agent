@@ -48,9 +48,11 @@ The system follows this high-level flow:
 
 ### Example screens:
 
-<img src="/assets/ai-idle.png" alt="idle screenshot" width="200"/>
-<img src="/assets/ai-listening.png" alt="listening screenshot" width="200"/>
-<img src="/assets/ai-ready.png" alt="ready screenshot" width="200"/>
+<div style="display: flex; flex-direction: row;">
+  <img src="/assets/ai-idle.png" alt="idle screenshot" width="200" style="margin-right: 10px;"/>
+  <img src="/assets/ai-listening.png" alt="listening screenshot" width="200" style="margin-right: 10px;" />
+  <img src="/assets/ai-ready.png" alt="ready screenshot" width="200"/>
+</div>
 
 ## Setup and Installation
 
