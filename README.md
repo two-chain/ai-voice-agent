@@ -46,6 +46,12 @@ The system follows this high-level flow:
 3. Add a message to the thread
 4. Run the thread
 
+### Example screens:
+
+<img src="/assets/ai-idle.png" alt="idle screenshot" width="200"/>
+<img src="/assets/ai-listening.png" alt="listening screenshot" width="200"/>
+<img src="/assets/ai-ready.png" alt="ready screenshot" width="200"/>
+
 ## Setup and Installation
 
 ## Usage
