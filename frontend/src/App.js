@@ -182,7 +182,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
         <h1 className="text-3xl font-bold mb-6 text-center text-blue-600">
           AI Voice Assistant
