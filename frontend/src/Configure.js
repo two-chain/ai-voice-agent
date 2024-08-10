@@ -68,9 +68,9 @@ const LLMModelSelector = () => {
       case "llm":
         return <LLMSettings />;
       case "tts":
-        return <Transcriber />;
-      case "stt":
         return <Synthesizer />;
+      case "stt":
+        return <Transcriber />;
       case "callprovider":
         return <CallProvider />;
       case "runner":
