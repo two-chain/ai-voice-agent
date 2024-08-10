@@ -4,7 +4,8 @@ import { WebSocketServer, WebSocket } from "ws";
 import { logger } from "@/server";
 import DeepgramTranscription from "@/transcriber/deepgram";
 import AudioGenerator from "@/synthesizer/deepgram";
-import ChatCompletion from "@/llm/openai";
+// import ChatCompletion from "@/llm/openai";
+import ChatCompletion from "@/llm/groq/assistant";
 import Shared from "./common/utils/Shared";
 import AssistantManager from "./llm/openai/assistant";
 
@@ -15,9 +16,9 @@ const setupWebSocket = (server: Server): WebSocketServer => {
     logger.info("New WebSocket connection established", ws);
 
     const transcriber = new DeepgramTranscription();
-    // const chat = new ChatCompletion();
-    const assistantManager = new AssistantManager();
-    assistantManager.init();
+    const chat = new ChatCompletion();
+    // const assistantManager = new AssistantManager();
+    // assistantManager.init();
     const synthsizer = new AudioGenerator();
 
     transcriber.on("transcription-chunk", async (transcription) => {
@@ -25,11 +26,11 @@ const setupWebSocket = (server: Server): WebSocketServer => {
       // interrupt event
       Shared.interrupt = true;
       ws.send(JSON.stringify({ type: "stream_interrupted" }));
-      await assistantManager.startChat(transcription);
-      // await chat.startChat(transcription);
+      // await assistantManager.startChat(transcription);
+      await chat.startChat(transcription);
     });
 
-    assistantManager.on("sentence", (sentence) => {
+    chat.on("sentence", (sentence) => {
       console.log(
         "On: sentence--------------------------" + typeof sentence,
         sentence
